@@ -7,8 +7,7 @@ const BookingSchema = new mongoose.Schema({
     },
     booking_id: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     booking_date: {
         type: Date,

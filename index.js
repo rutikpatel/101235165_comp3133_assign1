@@ -10,8 +10,9 @@ const { ApolloServer } = require('apollo-server-express')
 const dotenv = require('dotenv');
 dotenv.config();
 
-
-mongoose.connect(process.env.MONGODB_URL, {
+const PORT = 4000
+const MONGODB_URL = "mongodb://localhost:27017/assignment1"
+mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(success => {
@@ -37,5 +38,5 @@ server.start().then(res => {
     cors: false
   })
   app.listen({ port: process.env.PORT }, () =>
-    console.log(`Server running on http://localhost:${process.env.PORT}${server.graphqlPath}`))
+    console.log(`Server running on http://localhost:${PORT}${server.graphqlPath}`))
 });

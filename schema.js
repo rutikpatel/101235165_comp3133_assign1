@@ -3,7 +3,6 @@ const { gql } = require('apollo-server-express');
 exports.typeDefs = gql `
     scalar Date
     type Listing {
-        _id: ID
         listing_id: String!
         listing_title: String!
         description: String!
@@ -13,6 +12,7 @@ exports.typeDefs = gql `
         price: Float!
         email: String!
         username: String!
+        userId:ID
     },
     type Booking {
         _id: ID
@@ -21,7 +21,7 @@ exports.typeDefs = gql `
         booking_date: Date
         booking_start: Date
         booking_end: Date
-        username: String
+        username:String
     },
     type User {
         _id: ID!
@@ -33,12 +33,14 @@ exports.typeDefs = gql `
         type: String!
     },
     type Query {
-        getAllBookings(userId:String!): [Booking]
-        getAllListings(userId:String!): [Listing]
+        getAllBookings: [Booking]
+        getAllListings: [Listing]
         getBookingById(_id:String!):[Booking]
         getAllListingsOnlyAdmin: [Listing]
-        getListingByTitle(listing_title: String!,userId:String!):[Listing]
-        getListingByCity(city: String!,userId:String!):[Listing]
+        getListingByTitle(listing_title: String!):[Listing]
+        getListingByListing_id(listing_id: String!):[Listing]
+        getListingByCity(city: String!):[Listing]
+        getListingByPostalCode(postal_code: String!):[Listing]
     },
     type Mutation {
         login (username: String!, password: String!):User
@@ -57,17 +59,14 @@ exports.typeDefs = gql `
             street: String,
             city: String,
             postal_code: String,
-            price: Float ,
-            email: String,
-            username: String): Listing
+            price: Int): Listing
 
-        addBooking(userId: String!
+        addBooking(userId: String!,
             listing_id: String, 
             booking_id: String, 
             booking_date: Date, 
             booking_start: Date, 
-            booking_end: Date, 
-            username: String): Booking
+            booking_end: Date): Booking
     },
     
 `;

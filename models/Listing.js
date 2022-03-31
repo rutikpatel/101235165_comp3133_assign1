@@ -40,9 +40,11 @@ const ListingSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true
+    },
+    userId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     }
-
-
 })
 
 const Listing = mongoose.model("Listing", ListingSchema);

@@ -9,27 +9,14 @@ const { text } = require('express');
 exports.resolvers = {
     Query: {
         getAllBookings: async (parent, args) => {
-            const find = await User.findById(args.userId)
-            if (!find) {
-                return
-            }
-            if (find.type != 'user') {
-                throw new ValidationError("unauthorised access")
-            }
             return await Booking.find({})
         },
         getBookingById:async(parent,args)=>{
             return await Booking.find({_id:args._id})
         },
         getAllListings: async (parent, args) => {
-            const find = await User.findById(args.userId)
-            if (!find) {
-                return
-            }
-            if (find.type != 'admin') {
-                throw new ValidationError("unauthorised access")
-            }
-            return await Listing.find({})
+            const listings = await Listing.find({})
+            return listings
         },
         // getAllListingsOnlyAdmin: async (parent, args) => {
         //     if (!args.userId) {
@@ -45,25 +32,17 @@ exports.resolvers = {
         //     return await Listing.find({ username: find.username})
         // },
         getListingByCity: async (parent, args, context) => {
-            const find = await User.findById(args.userId)
-            if (!find) {
-                return
-            }
-            if (find.type != 'admin') {
-                throw ValidationError("unauthorised access")
-            }
             return await Listing.find({ city: args.city})
         },
+        getListingByListing_id: async (parent, args) => {
+            return await Listing.find({listing_id:args.listing_id})
+        },
         getListingByTitle: async (parent, args, context) => {
-            const find = await User.findById(args.userId)
-            if (!find) {
-                return
-            }
-            if (find.type != 'admin') {
-                throw ValidationError("unauthorised access")
-            }
             return await Listing.find({ listing_title: args.listing_title})  
         },
+        getListingByPostalCode: async(parent,args,context)=>{
+            return await Listing.find({ postal_code: args.postal_code })  
+        }
     },
 
     Mutation: {
@@ -79,7 +58,7 @@ exports.resolvers = {
                     console.log(err);
                 }
                 else {
-                    alert("Created a user");
+                    console.log("Created a user");
                 }
             })
             return newUser;
@@ -88,15 +67,33 @@ exports.resolvers = {
             if (!args.userId) {
                 return
             }
+            if(!args.listing_id){
+                throw new AuthenticationError("Listing id not found")
+            }
+            if (!args.listing_title) {
+                throw new AuthenticationError("Listing title not found")
+            }
+            if (!args.description) {
+                throw new AuthenticationError("Description not found")
+            }
+            if (!args.street) {
+                throw new AuthenticationError("Street not found")
+            }
+            if(!args.city) {
+                throw new AuthenticationError("city not found")
+            }
+            if(!args.postal_code) {
+                throw new AuthenticationError("postal code not found")
+            }
+            if(!args.price || args.price == 0 || args.price<0) {
+                throw new AuthenticationError("price not valid")
+            }
             const user = await User.findById(args.userId)
             if (!user) {
                 throw new AuthenticationError("User id not found")
             }
             if (user.type != 'admin') {
                 throw new AuthenticationError("User must be admin")
-            }
-            if (user.username != args.username) {
-                throw new AuthenticationError("User name should match with admin name")
             }
             let list = new Listing({
                 listing_id: args.listing_id,
@@ -106,8 +103,9 @@ exports.resolvers = {
                 city: args.city,
                 postal_code: args.postal_code,
                 price: args.price,
-                email: search.email,
-                username: search.username
+                email: user.email,
+                username: user.username,
+                userId :args.userId
             })
             return await list.save();
             
@@ -118,11 +116,27 @@ exports.resolvers = {
                 return
             }
             if (!args.listing_id) {
-                return
+                throw new AuthenticationError("Listing id not found")
             }
+            if (!args.booking_id) {
+                throw new AuthenticationError("Booking id not found")
+            }
+            if (!args.booking_date) {
+                throw new AuthenticationError("Booking date not found")
+            }
+            if (!args.booking_start) {
+                throw new AuthenticationError("Booking start date not found")
+            }
+            if (!args.booking_end) {
+                throw new AuthenticationError("Booking end date not found")
+            }
+
             const search = await User.findById(args.userId)
             if (!search) {
                 return
+            }
+            if(search.booking_id ===args.booking_id){
+                throw new AuthenticationError("Booking id must be unique")
             }
             let newBooking = new Booking({
 
@@ -133,7 +147,6 @@ exports.resolvers = {
                 booking_end: new Date(args.booking_end.toString()),
                 username: search.username                
             })
-                
             return newBooking.save()
         },
         login: async (parent, text ) => {
