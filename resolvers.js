@@ -5,6 +5,11 @@ const Listing = require('./models/Listing.js');
 const Booking = require('./models/Booking.js');
 const jwt = require("jsonwebtoken");
 const { text } = require('express');
+const validateEmail = (email) => {
+    return email.match(
+        /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+}
 
 exports.resolvers = {
     Query: {
@@ -18,19 +23,6 @@ exports.resolvers = {
             const listings = await Listing.find({})
             return listings
         },
-        // getAllListingsOnlyAdmin: async (parent, args) => {
-        //     if (!args.userId) {
-        //         throw ValidationError("unauthorised access")
-        //     }
-        //     const find = await User.findById(args.userId)
-        //     if (!find) {
-        //         return
-        //     }
-        //     if (find.type != 'admin') {
-        //         return
-        //     }
-        //     return await Listing.find({ username: find.username})
-        // },
         getListingByCity: async (parent, args, context) => {
             return await Listing.find({ city: args.city})
         },
@@ -48,9 +40,14 @@ exports.resolvers = {
     Mutation: {
         addUser: async (parent, args) => {
             const user = await User.findOne({ username: args.username });
-            
             if (user) {
                 throw new ApolloError('A username is aleready existed');
+            }
+            if(args.password.length<6){
+                throw new ApolloError('Password must be atleast 6 character')
+            }
+            if (!validateEmail(args.email)) {
+                throw new ApolloError("Email is not in proper format");
             }
             const newUser = new User(args);
             newUser.save((err, success) => {
